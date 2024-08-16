@@ -20,7 +20,12 @@ pub fn build(b: *std.Build) !void {
         break :blk false;
     };
 
-    const facilio = try build_facilio("facil.io", b, target, optimize, use_openssl);
+    // TODO: can this be done more easily?
+    const extra_lib_paths_opt = b.option([]const u8, "extra-libs-path", "extra paths for finding openssl and libcrypto");
+
+    const extra_lib_paths: []const std.Build.LazyPath = if (extra_lib_paths_opt) |s| &.{b.path(s)} else &.{};
+
+    const facilio = try build_facilio("facil.io", b, target, optimize, use_openssl, extra_lib_paths);
 
     const zap_module = b.addModule("zap", .{
         .root_source_file = b.path("src/zap.zig"),
