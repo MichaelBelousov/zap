@@ -21,9 +21,14 @@ pub fn build(b: *std.Build) !void {
     };
 
     // TODO: can this be done more easily?
-    const extra_lib_paths_opt = b.option([]const u8, "extra-libs-path", "extra paths for finding openssl and libcrypto");
+    const extra_lib_paths_opt = b.option([]const u8, "extra-libs-path", "extra path for finding openssl and libcrypto");
 
-    const extra_lib_paths: []const std.Build.LazyPath = if (extra_lib_paths_opt) |s| &.{b.path(s)} else &.{};
+    //const extra_lib_path: std.Build.LazyPath =
+    const extra_lib_paths: []const std.Build.LazyPath =
+        if (extra_lib_paths_opt) |s|
+        (&@as(std.Build.LazyPath, .{ .cwd_relative = s }))[0..1]
+    else
+        &.{};
 
     const facilio = try build_facilio("facil.io", b, target, optimize, use_openssl, extra_lib_paths);
 
