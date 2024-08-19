@@ -6,7 +6,7 @@ pub fn build_facilio(
     target: std.Build.ResolvedTarget,
     optimize: std.builtin.OptimizeMode,
     use_openssl: bool,
-    extra_lib_paths: []const std.Build.LazyPath,
+    ssl_path: ?std.Build.LazyPath,
 ) !*std.Build.Step.Compile {
     const lib = b.addStaticLibrary(.{
         .name = "facil.io",
@@ -80,7 +80,12 @@ pub fn build_facilio(
 
     // link in libopenssl and libcrypto on demand
     if (use_openssl) {
-        for (extra_lib_paths) |path| lib.addLibraryPath(path);
+        if (ssl_path) |p| {
+            const lib_path_segs = &[_][]const u8{ p.getPath(b), "lib" };
+            lib.addLibraryPath(.{ .cwd_relative = b.pathJoin(lib_path_segs) });
+            const include_path_segs = &[_][]const u8{ p.getPath(b), "include" };
+            lib.addIncludePath(.{ .cwd_relative = b.pathJoin(include_path_segs) });
+        }
         lib.linkSystemLibrary("ssl");
         lib.linkSystemLibrary("crypto");
     }
